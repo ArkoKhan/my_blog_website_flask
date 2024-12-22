@@ -7,6 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.orm import relationship
+import os
 # from passwords import *
 # import forms
 from forms import *
@@ -14,7 +15,7 @@ from forms import *
 
 app = Flask(__name__)
 bootstrap = Bootstrap5(app)
-app.config['SECRET_KEY'] = APP_SECRET_KEY
+app.config['SECRET_KEY'] =os.environ.get("APP_SECRET_KEY")
 ckeditor = CKEditor(app)
 # Configure Flask-Login
 login_manager = LoginManager()
@@ -26,7 +27,7 @@ def load_user(user_id):
     return db.get_or_404(User, user_id)
 
 # CONNECT TO DB
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///posts.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DB_URI", "sqlite:///posts.db")
 db = SQLAlchemy()
 db.init_app(app)
 
@@ -85,7 +86,7 @@ def admin_only(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         # If id is not 1 then return abort with 403 error
-        if current_user.email != ADMIN_EMAIL:
+        if current_user.email !=os.environ.get("ADMIN_EMAIL"):
             return abort(403)
         # Otherwise continue with the route function
         return f(*args, **kwargs)
